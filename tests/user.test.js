@@ -26,4 +26,21 @@ describe("User GraphQL API", () => {
     expect(res.data.createUser.name).toBe("Ashique");
     expect(res.data.createUser.age).toBe(23);
   });
+
+test("Get Users" , async ()=>{
+  const res = await server.executeOperation({
+    query: `
+    query{
+    users{
+    id
+    name
+    email
+    age
+    }
+    }
+    `
+  })
+  expect(res.errors).toBeUndefined;
+  expect(res.data.users.length).toBeGreaterThan(0);
+})
 });
