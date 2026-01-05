@@ -32,6 +32,9 @@ const typeDefs = gql`
 `;
 
 const users = [];
+const resetUsers = () =>{
+  users.length = 0 ;
+}
 
 const resolvers = {
   Query: {
@@ -90,6 +93,6 @@ const server = new ApolloServer({
   typeDefs,
   resolvers,
 });
-module.exports = server
+module.exports = { server, resetUsers};
 
 

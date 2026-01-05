@@ -1,7 +1,10 @@
-const server  = require("../server");
+const {server,resetUsers } = require("../server");
+
 
 describe("User GraphQL API (executeOperation)", () => {
-
+ beforeEach(()=>{
+  resetUsers();
+ })
   test("Create User", async () => {
     const res = await server.executeOperation({
       query: `
@@ -29,14 +32,28 @@ describe("User GraphQL API (executeOperation)", () => {
   });
 
   test("Get Users", async () => {
-    const res = await server.executeOperation({
+    await server.executeOperation({
+      query: `
+      mutation CreateUser($input: CreateUserInput!){
+      createUser(input:$input){
+      id
+      }
+      }
+      `,
+      variables:{
+        input:{
+          name: "Test",
+          email: "test@gmail.com",
+          age: 25,
+        }
+      }
+    })
+    const res = await server.executeOperation({ 
       query: `
         query {
           users {
             id
             name
-            email
-            age
           }
         }
       `
@@ -133,5 +150,44 @@ describe("User GraphQL API (executeOperation)", () => {
     expect(deleteRes.data.deleteUser.id).toBe(userId);
     expect(deleteRes.data.deleteUser.name).toBe("Mike");
   });
+
+  test("Update User - should fail when user does not exist", async () =>{
+    const res = await server.executeOperation({
+      query: `
+      mutation UpdateUser($id: ID!, $input: UpdateUserInput!){
+      updateUser(id: $id, input: $input){
+      id 
+      name
+      }}
+      `,
+      variables:{
+        id:"34",
+        input:{
+          age: 40
+        }
+      }
+    })
+    expect(res.data).toBeNull();
+    expect(res.errors).toBeDefined();
+    expect(res.errors[0].message).toBe("User not found")
+  })
+
+  test("Delete User - should fail when user does not exist", async() =>{
+    const res = await server.executeOperation({
+      query: `
+      mutation DeleteUser($id: ID!){
+      deleteUser(id: $id){
+      id 
+      name
+      }}
+      `,
+      variables:{
+        id:"35"
+      }
+    })
+    expect(res.data).toBeNull();
+    expect(res.errors).toBeDefined();
+    expect(res.errors[0].message).toBe("User not found")
+  })
 
 });
